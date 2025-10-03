@@ -14,7 +14,7 @@ import {
   Home,
   ShoppingCart,
   MessageCircle,
-  Bot,
+  Bot, // <-- Added Bot icon import
   Clock,
   Target,
   TrendingUp,
@@ -42,6 +42,7 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        if (!user?.id) return;
         const tasksResult = await apiService.getTasks(user.id);
         setTasks(tasksResult.tasks || []);
       } catch (error) {
@@ -49,60 +50,16 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
       }
     };
 
-    if (user?.id) {
-      fetchDashboardData();
-    }
+    fetchDashboardData();
   }, [user?.id]);
 
   const quickActions = [
-    {
-      icon: Calendar,
-      title: "Study Planner",
-      description: "Plan your study sessions with AI",
-      action: () => onNavigate('planner'),
-      color: "bg-blue-500",
-      badge: "2 tasks due"
-    },
-    {
-      icon: Briefcase,
-      title: "Job Finder",
-      description: "Discover new opportunities",
-      action: () => onNavigate('jobs'),
-      color: "bg-green-500",
-      badge: "5 new matches"
-    },
-    {
-      icon: BookOpen,
-      title: "Notes Hub",
-      description: "Access shared study materials",
-      action: () => onNavigate('notes'),
-      color: "bg-purple-500",
-      badge: "3 new uploads"
-    },
-    {
-      icon: Users,
-      title: "Study Buddy",
-      description: "Find study partners",
-      action: () => onNavigate('study-buddy'),
-      color: "bg-orange-500",
-      badge: "2 matches"
-    },
-    {
-      icon: Home,
-      title: "Roommate Finder",
-      description: "Find your ideal roommate",
-      action: () => onNavigate('roommate'),
-      color: "bg-pink-500",
-      badge: "1 new match"
-    },
-    {
-      icon: ShoppingCart,
-      title: "Marketplace",
-      description: "Buy, sell, exchange items",
-      action: () => onNavigate('marketplace'),
-      color: "bg-indigo-500",
-      badge: "4 new items"
-    }
+    { icon: Calendar, title: "Study Planner", description: "Plan your study sessions with AI", action: () => onNavigate('planner'), color: "bg-blue-500", badge: "2 tasks due" },
+    { icon: Briefcase, title: "Job Finder", description: "Discover new opportunities", action: () => onNavigate('jobs'), color: "bg-green-500", badge: "5 new matches" },
+    { icon: BookOpen, title: "Notes Hub", description: "Access shared study materials", action: () => onNavigate('notes'), color: "bg-purple-500", badge: "3 new uploads" },
+    { icon: Users, title: "Study Buddy", description: "Find study partners", action: () => onNavigate('study-buddy'), color: "bg-orange-500", badge: "2 matches" },
+    { icon: Home, title: "Roommate Finder", description: "Find your ideal roommate", action: () => onNavigate('roommate'), color: "bg-pink-500", badge: "1 new match" },
+    { icon: ShoppingCart, title: "Marketplace", description: "Buy, sell, exchange items", action: () => onNavigate('marketplace'), color: "bg-indigo-500", badge: "4 new items" }
   ];
 
   const upcomingTasks = [
@@ -119,7 +76,8 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
     { icon: MessageCircle, text: "5 new messages in Computer Science group", time: "1 day ago" }
   ];
 
-
+  // A safe way to get the user's name for the welcome message
+  const welcomeName = user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Student';
 
   return (
     <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
@@ -127,47 +85,52 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
         {/* Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold">Welcome back, {user.name}!</h1>
+            <h1 className="text-3xl font-bold">Welcome back, {welcomeName}!</h1>
             <p className="text-muted-foreground">
-              {user.major} • {user.year} • {user.university}
+              {/* Added safety checks for these as well */}
+              {user?.major || 'Your Major'} • {user?.year || 'Your Year'} • {user?.university || 'Your University'}
             </p>
           </div>
+          {/* --- THIS IS THE FIXED BLOCK --- */}
           <div className="flex items-center space-x-4">
             <Button onClick={() => onNavigate('chatbot')} className="flex items-center space-x-2">
               <Bot className="h-4 w-4" />
               <span>AI Assistant</span>
             </Button>
             <Avatar className="h-10 w-10">
-              <AvatarImage src="" alt={user.name} />
-              <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              <AvatarImage src="" alt={user?.email || 'User Avatar'} />
+              <AvatarFallback>
+                {(user?.name || user?.email || 'U').split(' ')[0][0].toUpperCase()}
+              </AvatarFallback>
             </Avatar>
           </div>
+          {/* --- END OF FIXED BLOCK --- */}
         </div>
 
 
         {/* change here */}
 
         <div onClick={() => onNavigate('jobs')} className="cursor-pointer">
-  <Card className="hover:bg-gray-50">
-    <CardHeader>
-      <CardTitle>Job & Internship Finder</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p>Discover opportunities tailored just for you.</p>
-    </CardContent>
-  </Card>
-</div>
+          <Card className="hover:bg-gray-50">
+            <CardHeader>
+              <CardTitle>Job & Internship Finder</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Discover opportunities tailored just for you.</p>
+            </CardContent>
+          </Card>
+        </div>
 
         <div onClick={() => onNavigate('community')} className="cursor-pointer">
-  <Card className="hover:bg-gray-50">
-    <CardHeader>
-      <CardTitle>Peer Connect</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p>Join groups, see events, and connect with peers.</p>
-    </CardContent>
-  </Card>
-</div>
+          <Card className="hover:bg-gray-50">
+            <CardHeader>
+              <CardTitle>Peer Connect</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Join groups, see events, and connect with peers.</p>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

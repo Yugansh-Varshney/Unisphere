@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigation } from "./components/Navigation";
 import { LandingPage } from "./components/LandingPage";
 import { LoginForm } from "./components/auth/LoginForm";
@@ -9,27 +8,22 @@ import { StudyPlanner } from "./components/features/StudyPlanner";
 import { Toaster } from "./components/ui/sonner";
 import { authService } from "./utils/auth";
 import { apiService } from "./utils/api";
-// CHnage form here
 import { Community } from './components/features/Community/Community';
-import { NotesHub } from './components/features/NotesHub/NotesHub'; // <-- ADD THIS LINE
+import { NotesHub } from './components/features/NotesHub/NotesHub';
 import { JobFinder } from './components/features/JobFinder/JobFinder';
 import { Marketplace } from './components/features/Marketplace/Marketplace';
-// ... other imports
-
+import ChatWindow from './components/features/AIChatbot/ChatWindow';
 
 export default function App() {
   const [currentView, setCurrentView] = useState("home");
-  const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
+  const [user, setUser] = useState<any>(null); // Added 'any' type for user
+  const [session, setSession] = useState<any>(null); // Added 'any' type for session
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing session on app load
   useEffect(() => {
     const checkSession = async () => {
       const result = await authService.getCurrentSession();
-      console.log("Result from getCurrentSession:", result);
       if (result.user && result.session) {
-        console.log("User from session:", result.user);
         setUser(result.user);
         setSession(result.session);
         apiService.setAccessToken(result.session.access_token);
@@ -37,17 +31,11 @@ export default function App() {
       }
       setIsLoading(false);
     };
-
     checkSession();
 
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = authService.onAuthStateChange((user, session) => {
-      console.log("Auth state change - User:", user);
-      console.log("Auth state change - Session:", session);
-      setUser(user);
+    const { data: { subscription } } = authService.onAuthStateChange((_event, session) => {
       setSession(session);
+      setUser(session?.user ?? null);
       if (session) {
         apiService.setAccessToken(session.access_token);
       } else {
@@ -97,129 +85,34 @@ export default function App() {
       case "home":
         return <LandingPage onGetStarted={handleGetStarted} />;
       case "login":
-        return (
-          <LoginForm
-            onLogin={handleLogin}
-            onSwitchToSignup={() => setCurrentView("signup")}
-          />
-        );
+        return <LoginForm onLogin={handleLogin} onSwitchToSignup={() => setCurrentView("signup")} />;
       case "signup":
-        return (
-          <SignupForm
-            onSignup={handleSignup}
-            onSwitchToLogin={() => setCurrentView("login")}
-          />
-        );
-        
+        return <SignupForm onSignup={handleSignup} onSwitchToLogin={() => setCurrentView("login")} />;
       case "dashboard":
-        return user ? (
-          <Dashboard
-            user={user}
-            onNavigate={handleViewChange}
-          />
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
+        return user ? <Dashboard user={user} onNavigate={handleViewChange} /> : <LandingPage onGetStarted={handleGetStarted} />;
       case "planner":
-        return user ? (
-          <StudyPlanner user={user} />
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
+        return user ? <StudyPlanner user={user} /> : <LandingPage onGetStarted={handleGetStarted} />;
       case "jobs":
-  return user ? (
-    <JobFinder /> // <-- Replace the placeholder div with this
-  ) : (
-    <LandingPage onGetStarted={handleGetStarted} />
-  );
+        return user ? <JobFinder /> : <LandingPage onGetStarted={handleGetStarted} />;
       case "notes":
-      return user ? (
-        <NotesHub /> // <-- REPLACE THE "COMING SOON" DIV WITH THIS
-      ) : (
-        <LandingPage onGetStarted={handleGetStarted} />
-      );
-      case "study-buddy":
-        return user ? (
-          <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold">
-                  AI Study Buddy Matching
-                </h1>
-                <p className="text-muted-foreground">
-                  Coming soon! Find the perfect study partners
-                  based on your courses and learning style.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
-      case "roommate":
-        return user ? (
-          <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold">
-                  Smart Roommate Finder
-                </h1>
-                <p className="text-muted-foreground">
-                  Coming soon! AI-powered compatibility matching
-                  for your ideal living companion.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
+        return user ? <NotesHub /> : <LandingPage onGetStarted={handleGetStarted} />;
       case "marketplace":
-  return user ? (
-    <Marketplace /> // <-- Replace the placeholder div with this
-  ) : (
-    <LandingPage onGetStarted={handleGetStarted} />
-  );
-      
-  case "community":
-  return user ? (
-    <Community /> // <-- Replace the placeholder div with this
-  ) : (
-    <LandingPage onGetStarted={handleGetStarted} />
-  );
+        return user ? <Marketplace /> : <LandingPage onGetStarted={handleGetStarted} />;
+      case "community":
+        return user ? <Community /> : <LandingPage onGetStarted={handleGetStarted} />;
       case "chatbot":
-        return user ? (
-          <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold">
-                  AI Assistant Chatbot
-                </h1>
-                <p className="text-muted-foreground">
-                  Coming soon! 24/7 intelligent assistant to
-                  answer questions and guide your university
-                  journey.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
+        return user ? <ChatWindow /> : <LandingPage onGetStarted={handleGetStarted} />;
       default:
         return <LandingPage onGetStarted={handleGetStarted} />;
     }
   };
 
-  // Show loading spinner while checking session
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">
-            Loading UniSphere...
-          </p>
+          <p className="text-muted-foreground">Loading UniSphere...</p>
         </div>
       </div>
     );
