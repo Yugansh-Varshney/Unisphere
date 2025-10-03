@@ -1,79 +1,114 @@
 // src/components/features/Marketplace/PostItemForm.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // 1. Import useRef
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Textarea } from '../../ui/textarea';
 import { Label } from '../../ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 
-export const PostItemForm = () => {
-  // State for the image file itself and its preview URL
-  const [imageFile, setImageFile] = useState<File | null>(null);
+interface PostItemFormProps {
+  onPostItem: (newItem: any) => void;
+  onClose: () => void;
+}
+
+export const PostItemForm = ({ onPostItem, onClose }: PostItemFormProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null); // 2. Create a ref for the file input
 
-  // State for other form inputs
-  const [title, setTitle] = useState('');
-  const [price, setPrice] = useState('');
-
-  // This function runs when the user selects a file
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      // Create a temporary URL for the selected image to show a preview
       setImagePreview(URL.createObjectURL(file));
+    } else {
+      setImagePreview(null);
     }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    // In a real app, this is where you would send the data to your backend
-    if (!imageFile) {
-      alert('Please select an image!');
-      return;
+  // 3. Create a function to handle removing the image
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // This resets the file input
     }
-    console.log('Submitting:', { title, price, imageFile });
-    alert('Item submitted! (Check the console for the data)');
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const imageFile = formData.get('image') as File;
+
+    const newItem = {
+      id: Date.now().toString(),
+      title: formData.get('title') as string,
+      price: Number(formData.get('price')),
+      originalPrice: Number(formData.get('originalPrice')) || undefined,
+      condition: formData.get('condition') as any,
+      description: formData.get('description') as string,
+      imageUrl: imageFile && imageFile.size > 0 ? URL.createObjectURL(imageFile) : '',
+      seller: 'You', // Items posted by the user are marked as "You"
+      status: 'For Sale' as const,
+    };
+    onPostItem(newItem);
+    onClose();
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Post a New Item</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Image Upload and Preview Section */}
-          <div className="space-y-2">
-            <Label>Item Image</Label>
-            {imagePreview && (
-              <div className="w-full h-64 border rounded-md overflow-hidden">
-                <img src={imagePreview} alt="Selected item preview" className="w-full h-full object-cover" />
-              </div>
-            )}
-            <Input 
-              id="image" 
-              type="file" 
-              accept="image/png, image/jpeg" // Only allow image files
-              onChange={handleImageChange} 
-              required
-            />
-          </div>
-          
-          {/* Other Form Fields */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="price">Price ($)</Label>
-            <Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
-          </div>
-          
-          <Button type="submit" className="w-full">Post Item</Button>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+      {/* ... other form fields ... */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="image" className="text-right">Image</Label>
+        <Input 
+          id="image" 
+          name="image" 
+          type="file" 
+          accept="image/*" 
+          className="col-span-3" 
+          required 
+          ref={fileInputRef} // Attach the ref
+          onChange={handleFileChange} 
+        />
+      </div>
+      
+      {/* 4. Conditionally show the preview and "Remove" button */}
+      {imagePreview && (
+        <div className="col-span-4 flex justify-end items-start gap-2">
+            <img src={imagePreview} alt="Image preview" className="rounded-md w-24 h-24 object-contain border" />
+            <Button type="button" variant="ghost" size="sm" onClick={handleRemoveImage}>
+              Remove
+            </Button>
+        </div>
+      )}
+
+      {/* ... rest of the form fields ... */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="title" className="text-right">Title</Label>
+        <Input id="title" name="title" className="col-span-3" required />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="price" className="text-right">Selling Price (₹)</Label>
+        <Input id="price" name="price" type="number" className="col-span-3" required />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="condition" className="text-right">Condition</Label>
+        <Select name="condition" required>
+          <SelectTrigger className="col-span-3">
+            <SelectValue placeholder="Select a condition" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Used - Like New">Used - Like New</SelectItem>
+            <SelectItem value="Used - Good">Used - Good</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="description" className="text-right">Description</Label>
+        <Textarea id="description" name="description" className="col-span-3" required />
+      </div>
+
+      <div className="flex justify-end mt-4">
+        <Button type="submit">Post Item</Button>
+      </div>
+    </form>
   );
 };
