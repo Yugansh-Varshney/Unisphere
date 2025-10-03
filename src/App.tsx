@@ -9,6 +9,12 @@ import { StudyPlanner } from "./components/features/StudyPlanner";
 import { Toaster } from "./components/ui/sonner";
 import { authService } from "./utils/auth";
 import { apiService } from "./utils/api";
+// CHnage form here
+
+import { NotesHub } from './components/features/NotesHub/NotesHub'; // <-- ADD THIS LINE
+
+// ... other imports
+
 
 export default function App() {
   const [currentView, setCurrentView] = useState("home");
@@ -103,6 +109,7 @@ export default function App() {
             onSwitchToLogin={() => setCurrentView("login")}
           />
         );
+        
       case "dashboard":
         return user ? (
           <Dashboard
@@ -137,23 +144,11 @@ export default function App() {
           <LandingPage onGetStarted={handleGetStarted} />
         );
       case "notes":
-        return user ? (
-          <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold">
-                  Notes & Resource Hub
-                </h1>
-                <p className="text-muted-foreground">
-                  Coming soon! Centralized platform for sharing
-                  and accessing study materials.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
+      return user ? (
+        <NotesHub /> // <-- REPLACE THE "COMING SOON" DIV WITH THIS
+      ) : (
+        <LandingPage onGetStarted={handleGetStarted} />
+      );
       case "study-buddy":
         return user ? (
           <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">

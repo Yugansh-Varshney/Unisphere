@@ -34,7 +34,7 @@ export function Navigation({ currentView, onViewChange, user, onLogout }: Naviga
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'planner', label: 'Study Planner' },
     { id: 'jobs', label: 'Jobs & Internships' },
-    { id: 'notes', label: 'Notes Hub' },
+    // { id: 'notes', label: 'Notes Hub' },
     { id: 'study-buddy', label: 'Study Buddy' },
     { id: 'roommate', label: 'Roommate Finder' },
     { id: 'marketplace', label: 'Marketplace' },
