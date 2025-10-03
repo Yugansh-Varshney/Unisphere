@@ -1,6 +1,6 @@
 // src/components/features/Marketplace/Marketplace.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 1. Import useEffect
 import { Button } from '../../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '../../ui/dialog';
 import { MarketplaceItem } from './MarketplaceItem';
@@ -18,36 +18,36 @@ type Item = {
   status: 'For Sale' | 'Sold';
 };
 
-// 1. Changed all sellers to "You" so you can see the Delete/Mark as Sold options on all sample items.
 const sampleItems: Item[] = [
-  {
-    id: '1',
-    title: 'Cambridge Computer Science Coursebook',
-    price: 800,
-    originalPrice: 1500,
-    condition: 'Used - Good',
-    imageUrl: 'https://m.media-amazon.com/images/I/71b2zSlpS7L._AC_UF1000,1000_QL80_.jpg',
-    seller: 'You', 
-    description: 'Latest edition coursebook for Cambridge International AS & A Level. Gently used with no markings.',
-    status: 'For Sale',
-  },
-  {
-    id: '2',
-    title: 'Mini Drafter for Engineering',
-    price: 250,
-    condition: 'Used - Like New',
-    imageUrl: 'https://5.imimg.com/data5/ANDROID/Default/2021/6/YV/SE/EK/24795399/product-jpeg-500x500.jpg',
-    seller: 'You', // Changed from 'Riya S.'
-    description: 'Perfect for engineering drawing students. Comes with all original parts and a carrying case.',
-    status: 'For Sale',
-  },
-  // ... feel free to change sellers for other items if you wish
+    // ... your sample items array
 ];
 
+// 2. LOGIC TO LOAD INITIAL DATA
+// We check localStorage for saved items. If none are found, we use the default sampleItems.
+const getInitialItems = (): Item[] => {
+  try {
+    const savedItems = localStorage.getItem('marketplaceItems');
+    return savedItems ? JSON.parse(savedItems) : sampleItems;
+  } catch (error) {
+    console.error("Failed to parse items from localStorage", error);
+    return sampleItems;
+  }
+};
+
+
 export const Marketplace = () => {
-  const [items, setItems] = useState<Item[]>(sampleItems);
+  // Initialize state with data from localStorage (or the default samples)
+  const [items, setItems] = useState<Item[]>(getInitialItems);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [viewingItemId, setViewingItemId] = useState<string | null>(null);
+  
+  // 3. LOGIC TO SAVE DATA
+  // This useEffect hook runs every time the 'items' state changes.
+  useEffect(() => {
+    // We convert the 'items' array to a string and save it in localStorage.
+    localStorage.setItem('marketplaceItems', JSON.stringify(items));
+  }, [items]); // The dependency array ensures this runs only when 'items' changes.
+
 
   const handlePostItem = (newItem: Item) => {
     setItems(prevItems => [newItem, ...prevItems]);
@@ -91,7 +91,6 @@ export const Marketplace = () => {
         </Dialog>
       </div>
       
-      {/* 2. Added conditional rendering for when the items list is empty */}
       {items.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {items.map(item => (
@@ -99,6 +98,7 @@ export const Marketplace = () => {
               key={item.id} 
               item={item}
               onViewDetails={() => setViewingItemId(item.id)}
+              onDeleteItem={() => handleDeleteItem(item.id)}
             />
           ))}
         </div>
@@ -109,6 +109,7 @@ export const Marketplace = () => {
         </div>
       )}
 
+      {/* ... (The Dialog for viewing details remains the same) ... */}
       <Dialog open={!!viewingItemId} onOpenChange={() => setViewingItemId(null)}>
         <DialogContent className="sm:max-w-lg">
           {selectedItem && (
