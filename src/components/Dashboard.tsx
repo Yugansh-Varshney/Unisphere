@@ -144,6 +144,31 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
           </div>
         </div>
 
+
+        {/* change here */}
+
+        <div onClick={() => onNavigate('jobs')} className="cursor-pointer">
+  <Card className="hover:bg-gray-50">
+    <CardHeader>
+      <CardTitle>Job & Internship Finder</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p>Discover opportunities tailored just for you.</p>
+    </CardContent>
+  </Card>
+</div>
+
+        <div onClick={() => onNavigate('community')} className="cursor-pointer">
+  <Card className="hover:bg-gray-50">
+    <CardHeader>
+      <CardTitle>Peer Connect</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p>Join groups, see events, and connect with peers.</p>
+    </CardContent>
+  </Card>
+</div>
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>

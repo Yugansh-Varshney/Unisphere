@@ -10,9 +10,10 @@ import { Toaster } from "./components/ui/sonner";
 import { authService } from "./utils/auth";
 import { apiService } from "./utils/api";
 // CHnage form here
-
+import { Community } from './components/features/Community/Community';
 import { NotesHub } from './components/features/NotesHub/NotesHub'; // <-- ADD THIS LINE
-
+import { JobFinder } from './components/features/JobFinder/JobFinder';
+import { Marketplace } from './components/features/Marketplace/Marketplace';
 // ... other imports
 
 
@@ -126,23 +127,11 @@ export default function App() {
           <LandingPage onGetStarted={handleGetStarted} />
         );
       case "jobs":
-        return user ? (
-          <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold">
-                  AI Job & Internship Finder
-                </h1>
-                <p className="text-muted-foreground">
-                  Coming soon! AI-powered job matching tailored
-                  to your skills and interests.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
+  return user ? (
+    <JobFinder /> // <-- Replace the placeholder div with this
+  ) : (
+    <LandingPage onGetStarted={handleGetStarted} />
+  );
       case "notes":
       return user ? (
         <NotesHub /> // <-- REPLACE THE "COMING SOON" DIV WITH THIS
@@ -186,41 +175,18 @@ export default function App() {
           <LandingPage onGetStarted={handleGetStarted} />
         );
       case "marketplace":
-        return user ? (
-          <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold">
-                  Campus Marketplace
-                </h1>
-                <p className="text-muted-foreground">
-                  Coming soon! Buy, sell, and exchange items
-                  safely within your campus community.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
-      case "community":
-        return user ? (
-          <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold">
-                  Peer Connect & Community
-                </h1>
-                <p className="text-muted-foreground">
-                  Coming soon! Social networking features for
-                  collaboration, group formation, and events.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <LandingPage onGetStarted={handleGetStarted} />
-        );
+  return user ? (
+    <Marketplace /> // <-- Replace the placeholder div with this
+  ) : (
+    <LandingPage onGetStarted={handleGetStarted} />
+  );
+      
+  case "community":
+  return user ? (
+    <Community /> // <-- Replace the placeholder div with this
+  ) : (
+    <LandingPage onGetStarted={handleGetStarted} />
+  );
       case "chatbot":
         return user ? (
           <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">

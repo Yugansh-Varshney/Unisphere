@@ -54,7 +54,7 @@ export const NoteCard = ({ title, author, course, fileUrl }: NoteCardProps) => {
       <DialogContent className="max-w-4xl h-[90vh]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Course: {course} | Author: {author}</DialogDescription>
+          <DialogDescription> Course: {course} | Author: {author} </DialogDescription>
         </DialogHeader>
         
         {/* 6. The iframe is the simplest way to display a PDF */}
