@@ -1,8 +1,10 @@
+// src/components/features/JobFinder/JobCard.tsx
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
-import { Progress } from '../../ui/progress'; // For the AI match score
+import { Progress } from '../../ui/progress';
 
 interface JobCardProps {
   title: string;
@@ -11,11 +13,13 @@ interface JobCardProps {
   type: 'Internship' | 'Full-time' | 'Part-time';
   tags: string[];
   matchPercentage: number;
+  onViewDetails: () => void;
+  // 'applyLink' is no longer needed here
 }
 
-export const JobCard = ({ title, company, location, type, tags, matchPercentage }: JobCardProps) => {
+export const JobCard = ({ title, company, location, type, tags, matchPercentage, onViewDetails }: JobCardProps) => {
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
@@ -25,22 +29,21 @@ export const JobCard = ({ title, company, location, type, tags, matchPercentage 
           <Badge>{type}</Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <p className="text-sm font-medium mb-2">Key Skills:</p>
-          <div className="flex flex-wrap gap-2">
-            {tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-          </div>
+      <CardContent className="flex-grow">
+        <p className="text-sm font-medium mb-2 text-muted-foreground">Key Skills:</p>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
         </div>
-        <div className="mb-4">
-          <p className="text-sm font-medium">AI Match Score: {matchPercentage}%</p>
-          <Progress value={matchPercentage} className="w-full mt-1" />
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="w-full">View Details</Button>
-          <Button className="w-full">Apply Now</Button>
-        </div>
+        <p className="text-sm font-medium mt-4 text-muted-foreground">AI Match Score: {matchPercentage}%</p>
+        <Progress value={matchPercentage} className="w-full mt-1" />
       </CardContent>
+      
+      {/* ✅ The buttons section is now cleaner, using a CardFooter */}
+      <CardFooter>
+        <Button variant="outline" className="w-full" onClick={onViewDetails}>
+          View Details
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
