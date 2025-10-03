@@ -1,6 +1,6 @@
 // src/components/features/Marketplace/Marketplace.tsx
 
-import React, { useState, useEffect } from 'react'; // 1. Import useEffect
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '../../ui/dialog';
 import { MarketplaceItem } from './MarketplaceItem';
@@ -19,40 +19,87 @@ type Item = {
 };
 
 const sampleItems: Item[] = [
-    // ... your sample items array
+  {
+    id: '1',
+    title: 'Cambridge Computer Science Coursebook',
+    price: 800,
+    originalPrice: 1500,
+    condition: 'Used - Good',
+    imageUrl: 'https://m.media-amazon.com/images/I/71b2zSlpS7L._AC_UF1000,1000_QL80_.jpg',
+    seller: 'You', 
+    description: 'Latest edition coursebook for Cambridge International AS & A Level. Gently used with no markings.',
+    status: 'For Sale',
+  },
+  {
+    id: '2',
+    title: 'Mini Drafter for Engineering',
+    price: 250,
+    condition: 'Used - Like New',
+    imageUrl: 'https://5.imimg.com/data5/ANDROID/Default/2021/6/YV/SE/EK/24795399/product-jpeg-500x500.jpg',
+    seller: 'You',
+    description: 'Perfect for engineering drawing students. Comes with all original parts and a carrying case.',
+    status: 'For Sale',
+  },
+  {
+    id: '3',
+    title: 'Casio FX-991EX Scientific Calculator',
+    price: 900,
+    originalPrice: 1250,
+    condition: 'Used - Good',
+    imageUrl: 'https://m.media-amazon.com/images/I/7175G9bk-yL.jpg',
+    seller: 'Amit K.',
+    description: 'ClassWiz series scientific calculator. Approved for most university exams.',
+    status: 'For Sale',
+  },
+  {
+    id: '4',
+    title: 'Study Table with Bookshelf',
+    price: 2500,
+    condition: 'Used - Fair',
+    imageUrl: 'https://media.nilkamal.com/nilkamal/images/live/15-02-2024/new-products/200002167_01.jpg',
+    seller: 'Priya M.',
+    description: 'Spacious study table with integrated bookshelf. Has some minor scratches but is very sturdy.',
+    status: 'For Sale',
+  },
 ];
-
-// 2. LOGIC TO LOAD INITIAL DATA
-// We check localStorage for saved items. If none are found, we use the default sampleItems.
-const getInitialItems = (): Item[] => {
-  try {
-    const savedItems = localStorage.getItem('marketplaceItems');
-    return savedItems ? JSON.parse(savedItems) : sampleItems;
-  } catch (error) {
-    console.error("Failed to parse items from localStorage", error);
-    return sampleItems;
-  }
-};
 
 
 export const Marketplace = () => {
-  // Initialize state with data from localStorage (or the default samples)
-  const [items, setItems] = useState<Item[]>(getInitialItems);
+  // ✅ NEW: We've moved the loading logic inside useState and added console logs
+  const [items, setItems] = useState<Item[]>(() => {
+    console.log("Attempting to initialize items state...");
+    try {
+      const savedItems = localStorage.getItem('marketplaceItems');
+      if (savedItems) {
+        console.log("Found saved items in localStorage.");
+        const parsedItems = JSON.parse(savedItems);
+        if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+          console.log(`Initializing with ${parsedItems.length} saved items.`);
+          return parsedItems;
+        } else {
+          console.log("Saved items list was empty. Falling back to default items.");
+        }
+      } else {
+        console.log("No saved items found in localStorage. Using default items.");
+      }
+    } catch (error) {
+      console.error("Failed to parse items from localStorage. Using default items.", error);
+    }
+    console.log(`Initializing with ${sampleItems.length} default sample items.`);
+    return sampleItems;
+  });
+
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [viewingItemId, setViewingItemId] = useState<string | null>(null);
   
-  // 3. LOGIC TO SAVE DATA
-  // This useEffect hook runs every time the 'items' state changes.
   useEffect(() => {
-    // We convert the 'items' array to a string and save it in localStorage.
     localStorage.setItem('marketplaceItems', JSON.stringify(items));
-  }, [items]); // The dependency array ensures this runs only when 'items' changes.
+  }, [items]);
 
-
+  // ... (rest of the component: handlePostItem, handleMarkAsSold, etc. remains the same)
   const handlePostItem = (newItem: Item) => {
     setItems(prevItems => [newItem, ...prevItems]);
   };
-
   const handleMarkAsSold = (itemId: string) => {
     setItems(currentItems =>
       currentItems.map(item =>
@@ -61,15 +108,15 @@ export const Marketplace = () => {
     );
     setViewingItemId(null);
   };
-  
   const handleDeleteItem = (itemId: string) => {
     if (window.confirm('Are you sure you want to delete this post? This cannot be undone.')) {
         setItems(currentItems => currentItems.filter(item => item.id !== itemId));
         setViewingItemId(null);
     }
   };
-
   const selectedItem = items.find(item => item.id === viewingItemId);
+
+  console.log(`Component is rendering with ${items.length} items.`);
 
   return (
     <div className="container mx-auto p-6">
@@ -109,8 +156,8 @@ export const Marketplace = () => {
         </div>
       )}
 
-      {/* ... (The Dialog for viewing details remains the same) ... */}
-      <Dialog open={!!viewingItemId} onOpenChange={() => setViewingItemId(null)}>
+      {/* ... (Dialog for viewing details remains the same) ... */}
+       <Dialog open={!!viewingItemId} onOpenChange={() => setViewingItemId(null)}>
         <DialogContent className="sm:max-w-lg">
           {selectedItem && (
             <>

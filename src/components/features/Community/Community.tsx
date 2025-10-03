@@ -1,42 +1,131 @@
-import React from 'react';
-import { PostCard } from './PostCard';
-import { Button } from '../../ui/button';
+// src/components/features/Community/Community.tsx
+
+import React, { useState, useEffect } from 'react';
 import { Textarea } from '../../ui/textarea';
+import { Button } from '../../ui/button';
 import { Card, CardContent } from '../../ui/card';
+import { PostCard } from './PostCard';
+
+export interface User { name: string; avatarUrl?: string; }
+export interface Comment { id: string; author: User; text: string; timestamp: string; }
+export interface Post { id: string; author: User; text: string; timestamp: string; likes: number; comments: Comment[]; }
+
+const currentUser: User = {
+  name: 'Shubham',
+  avatarUrl: 'https://github.com/shadcn.png',
+};
+
+const samplePosts: Post[] = [
+  {
+    id: 'post1',
+    author: { name: 'Shivani', avatarUrl: 'https://i.pravatar.cc/150?u=shivani' },
+    text: 'Anyone forming a study group for the upcoming CS101 midterm? Let me know!',
+    timestamp: '2 hours ago',
+    likes: 12,
+    comments: [
+      { id: 'c1', author: { name: 'Rohan' }, text: 'I am interested!', timestamp: '1 hour ago' },
+      { id: 'c2', author: { name: 'Shubham', avatarUrl: 'https://github.com/shadcn.png' }, text: 'Great idea! Count me in.', timestamp: '45 mins ago' },
+    ],
+  },
+  {
+    id: 'post2',
+    author: { name: 'Shubham', avatarUrl: 'https://github.com/shadcn.png' }, // A post by the current user
+    text: 'Just finished the marketplace feature for our project. Feeling accomplished! ✨',
+    timestamp: '8 hours ago',
+    likes: 42,
+    comments: [],
+  },
+];
+
+const getInitialPosts = (): Post[] => {
+  try {
+    const savedPosts = localStorage.getItem('communityPosts');
+    if (savedPosts) {
+      const parsedPosts = JSON.parse(savedPosts);
+      if (Array.isArray(parsedPosts) && parsedPosts.length > 0) {
+        return parsedPosts;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to parse posts from localStorage", error);
+  }
+  return samplePosts;
+};
 
 export const Community = () => {
-  // Mock data for the feed. Later, this will come from your backend.
-  const samplePosts = [
-    { id: 1, authorName: 'Shivani', authorAvatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', timestamp: '2h ago', content: 'Anyone forming a study group for the upcoming CS101 midterm? Let me know!', likes: 12, commentsCount: 5 },
-    { id: 2, authorName: 'Amita', authorAvatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026705d', timestamp: '5h ago', content: 'Reminder: The University Coding Club is meeting tonight at 7 PM in the main library. Free pizza will be provided! 🍕', likes: 45, commentsCount: 18 },
-    { id: 3, authorName: 'Ashu', authorAvatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026706d', timestamp: '1d ago', content: 'Selling my old chemistry textbook, in great condition. DM if interested. Check it out on the marketplace!', likes: 8, commentsCount: 2 },
-  ];
+  const [posts, setPosts] = useState<Post[]>(getInitialPosts);
+  const [newPostText, setNewPostText] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('communityPosts', JSON.stringify(posts));
+  }, [posts]);
+
+  // --- HANDLER FUNCTIONS ---
+
+  const handlePostSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPostText.trim()) return;
+    const newPost: Post = { id: `post_${Date.now()}`, author: currentUser, text: newPostText, timestamp: 'Just now', likes: 0, comments: [] };
+    setPosts(prevPosts => [newPost, ...prevPosts]);
+    setNewPostText('');
+  };
+
+  const handleLike = (postId: string) => {
+    setPosts(currentPosts => currentPosts.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
+  };
+
+  const handleAddComment = (postId: string, commentText: string) => {
+    const newComment: Comment = { id: `c_${Date.now()}`, author: currentUser, text: commentText, timestamp: 'Just now' };
+    setPosts(currentPosts => currentPosts.map(p => p.id === postId ? { ...p, comments: [...p.comments, newComment] } : p));
+  };
+
+  // ✅ The delete handlers are back
+  const handleDeletePost = (postId: string) => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+        setPosts(currentPosts => currentPosts.filter(p => p.id !== postId));
+    }
+  };
+
+  const handleDeleteComment = (postId: string, commentId: string) => {
+    setPosts(currentPosts =>
+      currentPosts.map(post => {
+        if (post.id === postId) {
+          const updatedComments = post.comments.filter(comment => comment.id !== commentId);
+          return { ...post, comments: updatedComments };
+        }
+        return post;
+      })
+    );
+  };
 
   return (
-    <div className="container mx-auto max-w-2xl p-6">
-      <h1 className="text-4xl font-bold mb-6">Community Hub</h1>
+    <div className="container mx-auto max-w-2xl p-4 sm:p-6 space-y-8">
+      <h1 className="text-3xl sm:text-4xl font-bold text-center">Community Hub</h1>
       
-      {/* Create Post Section */}
-      <Card className="mb-6">
+      <Card>
         <CardContent className="p-4">
-          <div className="space-y-4">
-            <Textarea placeholder="What's on your mind?" />
-            <Button className="w-full">Post</Button>
-          </div>
+          <form onSubmit={handlePostSubmit} className="space-y-4">
+            <Textarea
+              placeholder={`What's on your mind, ${currentUser.name}?`}
+              value={newPostText}
+              onChange={(e) => setNewPostText(e.target.value)}
+              className="min-h-[80px]"
+            />
+            <Button type="submit" className="w-full">Post</Button>
+          </form>
         </CardContent>
       </Card>
-      
-      {/* Feed Section */}
+
       <div className="space-y-6">
-        {samplePosts.map(post => (
-          <PostCard
-            key={post.id}
-            authorName={post.authorName}
-            authorAvatarUrl={post.authorAvatarUrl}
-            timestamp={post.timestamp}
-            content={post.content}
-            likes={post.likes}
-            commentsCount={post.commentsCount}
+        {posts.map(post => (
+          <PostCard 
+            key={post.id} 
+            post={post}
+            currentUser={currentUser}
+            onLike={handleLike}
+            onAddComment={handleAddComment}
+            onDeletePost={handleDeletePost}       // ✅ Pass the handlers down
+            onDeleteComment={handleDeleteComment} // ✅ Pass the handlers down
           />
         ))}
       </div>

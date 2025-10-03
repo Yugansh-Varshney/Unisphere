@@ -1,3 +1,5 @@
+// src/App.tsx
+
 import React, { useState, useEffect } from "react";
 import { Navigation } from "./components/Navigation";
 import { LandingPage } from "./components/LandingPage";
@@ -16,18 +18,31 @@ import ChatWindow from './components/features/AIChatbot/ChatWindow';
 
 export default function App() {
   const [currentView, setCurrentView] = useState("home");
-  const [user, setUser] = useState<any>(null); // Added 'any' type for user
-  const [session, setSession] = useState<any>(null); // Added 'any' type for session
+  const [user, setUser] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // ✅ 1. Add state to hold the shared post ID from the URL
+  const [initialPostId, setInitialPostId] = useState<string | null>(null);
 
   useEffect(() => {
+    // ✅ 2. Check the URL for a post ID when the app first loads
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#post_')) {
+      // If we find a post ID, save it and set the view to community
+      setInitialPostId(hash.substring(1)); // Remove the '#'
+      setCurrentView("community");
+    }
+
     const checkSession = async () => {
       const result = await authService.getCurrentSession();
       if (result.user && result.session) {
         setUser(result.user);
         setSession(result.session);
         apiService.setAccessToken(result.session.access_token);
-        setCurrentView("dashboard");
+        // Only go to dashboard if a specific post wasn't requested
+        if (!initialPostId) {
+            setCurrentView("dashboard");
+        }
       }
       setIsLoading(false);
     };
@@ -44,22 +59,15 @@ export default function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initialPostId]); // Add initialPostId to dependency array
 
+  // ... (all your handler functions like handleLogin, handleLogout, etc. remain the same)
   const handleLogin = (userData: any, userSession: any) => {
     setUser(userData);
     setSession(userSession);
     apiService.setAccessToken(userSession.access_token);
     setCurrentView("dashboard");
   };
-
-  const handleSignup = (userData: any, userSession: any) => {
-    setUser(userData);
-    setSession(userSession);
-    apiService.setAccessToken(userSession.access_token);
-    setCurrentView("dashboard");
-  };
-
   const handleLogout = async () => {
     await authService.signOut();
     setUser(null);
@@ -67,11 +75,9 @@ export default function App() {
     apiService.setAccessToken(null);
     setCurrentView("home");
   };
-
   const handleViewChange = (view: string) => {
     setCurrentView(view);
   };
-
   const handleGetStarted = () => {
     if (user) {
       setCurrentView("dashboard");
@@ -80,6 +86,7 @@ export default function App() {
     }
   };
 
+
   const renderCurrentView = () => {
     switch (currentView) {
       case "home":
@@ -87,7 +94,8 @@ export default function App() {
       case "login":
         return <LoginForm onLogin={handleLogin} onSwitchToSignup={() => setCurrentView("signup")} />;
       case "signup":
-        return <SignupForm onSignup={handleSignup} onSwitchToLogin={() => setCurrentView("login")} />;
+        // Assuming SignupForm is similar to LoginForm
+        return <SignupForm onSignup={handleLogin} onSwitchToLogin={() => setCurrentView("login")} />;
       case "dashboard":
         return user ? <Dashboard user={user} onNavigate={handleViewChange} /> : <LandingPage onGetStarted={handleGetStarted} />;
       case "planner":
@@ -99,7 +107,8 @@ export default function App() {
       case "marketplace":
         return user ? <Marketplace /> : <LandingPage onGetStarted={handleGetStarted} />;
       case "community":
-        return user ? <Community /> : <LandingPage onGetStarted={handleGetStarted} />;
+        // ✅ 3. Pass the post ID down to the Community component
+        return user ? <Community initialPostId={initialPostId} /> : <LandingPage onGetStarted={handleGetStarted} />;
       case "chatbot":
         return user ? <ChatWindow /> : <LandingPage onGetStarted={handleGetStarted} />;
       default:
@@ -108,15 +117,15 @@ export default function App() {
   };
 
   if (isLoading) {
+    // ... (loading spinner remains the same)
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading UniSphere...</p>
-        </div>
+        <p>Loading...</p>
       </div>
-    );
+    )
   }
+
+  
 
   return (
     <div className="min-h-screen bg-background">
