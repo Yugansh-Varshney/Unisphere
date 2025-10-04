@@ -6,7 +6,7 @@ import { LandingPage } from "./components/LandingPage";
 import { LoginForm } from "./components/auth/LoginForm";
 import { SignupForm } from "./components/auth/SignupForm";
 import { Dashboard } from "./components/Dashboard";
-import { StudyPlanner } from "./components/features/StudyPlanner";
+import { StudyPlanner } from "./components/features/StudyPlanner/StudyPlanner";
 import { Toaster } from "./components/ui/sonner";
 import { authService } from "./utils/auth";
 import { apiService } from "./utils/api";

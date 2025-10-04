@@ -1,16 +1,16 @@
+// src/components/features/AIChatbot/ChatWindow.tsx (Correct Version with Memory)
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../../ui/card';
-import { Input } from '../../ui/input';
-import { Button } from '../../ui/button';
-import { Avatar, AvatarFallback } from '../../ui/avatar';
-import { ScrollArea } from '../../ui/scroll-area';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage } from './types';
 
-// The address of our Python "kitchen".
-// When you deploy your Python app later, you will change this URL.
 const CHATBOT_API_URL = 'http://127.0.0.1:8000/chat';
 
-const ChatWindow = () => {
+export default function ChatWindow() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -23,32 +23,35 @@ const ChatWindow = () => {
     }
   }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim()) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      text: input,
+      text: messageText,
       sender: 'user',
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
     setIsLoading(true);
+
+    const history = currentMessages.slice(-5);
 
     try {
       const response = await fetch(CHATBOT_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ 
+          message: messageText,
+          history: history 
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Something went wrong with the AI response.');
-      }
-
+      if (!response.ok) throw new Error('API response was not ok.');
+      
       const data = await response.json();
+      if (data.error) throw new Error(data.error);
 
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -61,7 +64,7 @@ const ChatWindow = () => {
       console.error('Error calling chatbot API:', error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, I am having trouble connecting right now. Please try again later.',
+        text: 'Sorry, I am having trouble connecting. Please try again later.',
         sender: 'bot',
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -69,9 +72,15 @@ const ChatWindow = () => {
       setIsLoading(false);
     }
   };
+  
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+    setInput('');
+  };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto h-[80vh] flex flex-col">
+    <Card className="w-full max-w-2xl mx-auto h-[70vh] flex flex-col">
       <CardHeader>
         <CardTitle>UniSphere AI Assistant</CardTitle>
       </CardHeader>
@@ -81,8 +90,8 @@ const ChatWindow = () => {
             {messages.map((message) => (
               <div key={message.id} className={`flex items-start gap-3 ${message.sender === 'user' ? 'justify-end' : ''}`}>
                 {message.sender === 'bot' && <Avatar><AvatarFallback>AI</AvatarFallback></Avatar>}
-                <div className={`rounded-lg px-4 py-2 max-w-[80%] ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                  <p className="whitespace-pre-wrap">{message.text}</p>
+                <div className={`whitespace-pre-wrap rounded-lg px-4 py-2 max-w-[80%] ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  {message.text}
                 </div>
               </div>
             ))}
@@ -96,13 +105,11 @@ const ChatWindow = () => {
         </ScrollArea>
       </CardContent>
       <CardFooter>
-        <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
+        <form onSubmit={handleFormSubmit} className="flex w-full items-center space-x-2">
           <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask me anything..." disabled={isLoading} />
           <Button type="submit" disabled={isLoading}>Send</Button>
         </form>
       </CardFooter>
     </Card>
   );
-};
-
-export default ChatWindow;
+}
